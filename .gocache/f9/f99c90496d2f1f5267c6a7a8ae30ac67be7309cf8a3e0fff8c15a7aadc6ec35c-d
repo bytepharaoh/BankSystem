@@ -1,0 +1,48 @@
+=== RUN   TestGetAccountAPI
+=== RUN   TestGetAccountAPI/OK
+[GIN] 2026/03/07 - 20:49:13 | 200 | 420.541µs |                 | GET      "/accounts/500"
+=== RUN   TestGetAccountAPI/NotFound
+[GIN] 2026/03/07 - 20:49:13 | 404 | 11.584µs |                 | GET      "/accounts/500"
+=== RUN   TestGetAccountAPI/InternalError
+[GIN] 2026/03/07 - 20:49:13 | 500 |  6.958µs |                 | GET      "/accounts/500"
+=== RUN   TestGetAccountAPI/InvalidID
+[GIN] 2026/03/07 - 20:49:13 | 400 |  5.416µs |                 | GET      "/accounts/0"
+--- PASS: TestGetAccountAPI (0.00s)
+    --- PASS: TestGetAccountAPI/OK (0.00s)
+    --- PASS: TestGetAccountAPI/NotFound (0.00s)
+    --- PASS: TestGetAccountAPI/InternalError (0.00s)
+    --- PASS: TestGetAccountAPI/InvalidID (0.00s)
+=== RUN   TestCreateAccountAPI
+=== RUN   TestCreateAccountAPI/OK
+[GIN] 2026/03/07 - 20:49:13 | 200 | 153.458µs |                 | POST     "/accounts"
+=== RUN   TestCreateAccountAPI/InternalError
+[GIN] 2026/03/07 - 20:49:13 | 500 |  5.416µs |                 | POST     "/accounts"
+=== RUN   TestCreateAccountAPI/InvalidCurrency
+[GIN] 2026/03/07 - 20:49:13 | 400 |  6.459µs |                 | POST     "/accounts"
+=== RUN   TestCreateAccountAPI/InvalidJSON
+[GIN] 2026/03/07 - 20:49:13 | 400 |  3.834µs |                 | POST     "/accounts"
+--- PASS: TestCreateAccountAPI (0.00s)
+    --- PASS: TestCreateAccountAPI/OK (0.00s)
+    --- PASS: TestCreateAccountAPI/InternalError (0.00s)
+    --- PASS: TestCreateAccountAPI/InvalidCurrency (0.00s)
+    --- PASS: TestCreateAccountAPI/InvalidJSON (0.00s)
+=== RUN   TestListAccountsAPI
+=== RUN   TestListAccountsAPI/OK
+[GIN] 2026/03/07 - 20:49:13 | 200 | 41.292µs |                 | GET      "/accounts?page_id=1&page_size=5"
+=== RUN   TestListAccountsAPI/InternalError
+[GIN] 2026/03/07 - 20:49:13 | 500 |  5.917µs |                 | GET      "/accounts?page_id=1&page_size=5"
+=== RUN   TestListAccountsAPI/InvalidPageID
+[GIN] 2026/03/07 - 20:49:13 | 400 |   3.75µs |                 | GET      "/accounts?page_id=0&page_size=5"
+=== RUN   TestListAccountsAPI/InvalidPageSize
+[GIN] 2026/03/07 - 20:49:13 | 400 |  3.542µs |                 | GET      "/accounts?page_id=1&page_size=11"
+=== RUN   TestListAccountsAPI/InvalidPageType
+[GIN] 2026/03/07 - 20:49:13 | 400 |  3.583µs |                 | GET      "/accounts?page_id=abc&page_size=5"
+--- PASS: TestListAccountsAPI (0.00s)
+    --- PASS: TestListAccountsAPI/OK (0.00s)
+    --- PASS: TestListAccountsAPI/InternalError (0.00s)
+    --- PASS: TestListAccountsAPI/InvalidPageID (0.00s)
+    --- PASS: TestListAccountsAPI/InvalidPageSize (0.00s)
+    --- PASS: TestListAccountsAPI/InvalidPageType (0.00s)
+PASS
+coverage: 97.6% of statements
+ok  	github.com/bytepharoh/simplebank/api	0.489s	coverage: 97.6% of statements

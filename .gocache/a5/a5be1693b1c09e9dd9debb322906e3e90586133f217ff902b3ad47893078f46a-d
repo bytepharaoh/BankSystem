@@ -1,0 +1,113 @@
+//line /Users/zodiac/backend_projects/Golang_backend/api/account.go:1:1
+package api
+
+import (
+	"database/sql"
+	"net/http"
+
+	db "github.com/bytepharoh/simplebank/db/sqlc"
+	"github.com/gin-gonic/gin"
+)
+
+type createAccountRequest struct {
+	Owner    string `json:"owner" binding:"required"`
+	Currency string `json:"currency" binding:"required,oneof=USD EUR RUB EGP"`
+}
+
+func (server *Server) createAccount(ctx *gin.Context) {goCover_ba80757d2351__0[0] = 5 ; goCover_ba80757d2351__0[1] = goCover_ba80757d2351_P ; goCover_ba80757d2351__0[2] = 0 ; goCover_ba80757d2351__0[3] = 1;
+	var req createAccountRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {goCover_ba80757d2351__0[6] = 1;
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+	goCover_ba80757d2351__0[4] = 1;arg := db.CreateAccountParams{
+		Owner:    req.Owner,
+		Currency: req.Currency,
+		Balance:  0,
+	}
+	account, err := server.store.CreateAccount(ctx, arg)
+	if err != nil {goCover_ba80757d2351__0[7] = 1;
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+	goCover_ba80757d2351__0[5] = 1;ctx.JSON(http.StatusOK, account)
+
+}
+
+type getAccountRequest struct {
+	ID int64 `uri:"id" binding:"required,min=1"`
+}
+
+func (server *Server) getAccount(ctx *gin.Context) {goCover_ba80757d2351__1[0] = 7 ; goCover_ba80757d2351__1[1] = goCover_ba80757d2351_P ; goCover_ba80757d2351__1[2] = 1 ; goCover_ba80757d2351__1[3] = 1;
+	var req getAccountRequest
+	if err := ctx.ShouldBindUri(&req); err != nil {goCover_ba80757d2351__1[6] = 1;
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+	goCover_ba80757d2351__1[4] = 1;account, err := server.store.GetAccount(ctx, req.ID)
+	if err != nil {goCover_ba80757d2351__1[7] = 1;
+		if err == sql.ErrNoRows {goCover_ba80757d2351__1[9] = 1;
+			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			return
+		}
+		goCover_ba80757d2351__1[8] = 1;ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+	goCover_ba80757d2351__1[5] = 1;ctx.JSON(http.StatusOK, account)
+
+}
+
+type deleteAccountRequest struct {
+	ID int64 `uri:"id" binding:"required,min=1"`
+}
+
+func (server *Server) deleteAccount(ctx *gin.Context) {goCover_ba80757d2351__2[0] = 9 ; goCover_ba80757d2351__2[1] = goCover_ba80757d2351_P ; goCover_ba80757d2351__2[2] = 2 ; goCover_ba80757d2351__2[3] = 1;
+	var req deleteAccountRequest
+	if err := ctx.ShouldBindUri(&req); err != nil {goCover_ba80757d2351__2[7] = 1;
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	goCover_ba80757d2351__2[4] = 1;_, err := server.store.GetAccount(ctx, req.ID)
+	if err != nil {goCover_ba80757d2351__2[8] = 1;
+		if err == sql.ErrNoRows {goCover_ba80757d2351__2[10] = 1;
+			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			return
+		}
+		goCover_ba80757d2351__2[9] = 1;ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	goCover_ba80757d2351__2[5] = 1;err = server.store.DeleteAccount(ctx, req.ID)
+	if err != nil {goCover_ba80757d2351__2[11] = 1;
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	goCover_ba80757d2351__2[6] = 1;ctx.Status(http.StatusNoContent)
+}
+
+type listAccountRequest struct {
+	PageID   int64 `form:"page_id" binding:"required,min=1"`
+	PageSize int64 `form:"page_size" binding:"required,min=5,max=10"`
+}
+
+func (server *Server) listAccount(ctx *gin.Context) {goCover_ba80757d2351__3[0] = 5 ; goCover_ba80757d2351__3[1] = goCover_ba80757d2351_P ; goCover_ba80757d2351__3[2] = 3 ; goCover_ba80757d2351__3[3] = 1;
+	var req listAccountRequest
+	if err := ctx.ShouldBindQuery(&req); err != nil {goCover_ba80757d2351__3[6] = 1;
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+	goCover_ba80757d2351__3[4] = 1;arg := db.ListAccountsParams{
+		Limit:  int32(req.PageSize),
+		Offset: (int32(req.PageID) - 1) * int32(req.PageSize),
+	}
+	accounts, err := server.store.ListAccounts(ctx, arg)
+	if err != nil {goCover_ba80757d2351__3[7] = 1;
+
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+	goCover_ba80757d2351__3[5] = 1;ctx.JSON(http.StatusOK, accounts)
+
+}

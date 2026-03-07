@@ -1,0 +1,52 @@
+=== RUN   TestGetAccountAPI
+=== RUN   TestGetAccountAPI/OK
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] POST   /accounts                 --> github.com/bytepharoh/simplebank/api.(*Server).createAccount-fm (3 handlers)
+[GIN-debug] GET    /account/:id              --> github.com/bytepharoh/simplebank/api.(*Server).getAccount-fm (3 handlers)
+[GIN-debug] GET    /accounts                 --> github.com/bytepharoh/simplebank/api.(*Server).listAccount-fm (3 handlers)
+[GIN] 2026/03/07 - 20:15:36 | 200 | 743.833µs |                 | GET      "/account/225"
+=== RUN   TestGetAccountAPI/NotFound
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] POST   /accounts                 --> github.com/bytepharoh/simplebank/api.(*Server).createAccount-fm (3 handlers)
+[GIN-debug] GET    /account/:id              --> github.com/bytepharoh/simplebank/api.(*Server).getAccount-fm (3 handlers)
+[GIN-debug] GET    /accounts                 --> github.com/bytepharoh/simplebank/api.(*Server).listAccount-fm (3 handlers)
+[GIN] 2026/03/07 - 20:15:36 | 404 | 17.167µs |                 | GET      "/account/225"
+=== RUN   TestGetAccountAPI/InternalError
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] POST   /accounts                 --> github.com/bytepharoh/simplebank/api.(*Server).createAccount-fm (3 handlers)
+[GIN-debug] GET    /account/:id              --> github.com/bytepharoh/simplebank/api.(*Server).getAccount-fm (3 handlers)
+[GIN-debug] GET    /accounts                 --> github.com/bytepharoh/simplebank/api.(*Server).listAccount-fm (3 handlers)
+[GIN] 2026/03/07 - 20:15:36 | 500 | 12.292µs |                 | GET      "/account/225"
+=== RUN   TestGetAccountAPI/InvalidID
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] POST   /accounts                 --> github.com/bytepharoh/simplebank/api.(*Server).createAccount-fm (3 handlers)
+[GIN-debug] GET    /account/:id              --> github.com/bytepharoh/simplebank/api.(*Server).getAccount-fm (3 handlers)
+[GIN-debug] GET    /accounts                 --> github.com/bytepharoh/simplebank/api.(*Server).listAccount-fm (3 handlers)
+[GIN] 2026/03/07 - 20:15:36 | 400 |  8.666µs |                 | GET      "/account/0"
+--- PASS: TestGetAccountAPI (0.00s)
+    --- PASS: TestGetAccountAPI/OK (0.00s)
+    --- PASS: TestGetAccountAPI/NotFound (0.00s)
+    --- PASS: TestGetAccountAPI/InternalError (0.00s)
+    --- PASS: TestGetAccountAPI/InvalidID (0.00s)
+PASS
+ok  	github.com/bytepharoh/simplebank/api	0.688s
