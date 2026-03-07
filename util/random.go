@@ -35,7 +35,7 @@ func RandomBalance() int64 {
 
 //RandomCurrency generate a random currency code
 func RandomCurrency () string {
-	currencies:= []string {"USD" , "EUR" , "RUB" , "EGP"}
+	currencies:= []string {USD , EGP ,RUB , EUR }
 	n:=len(currencies)
 	return currencies[rand.Intn(n)]
 } 

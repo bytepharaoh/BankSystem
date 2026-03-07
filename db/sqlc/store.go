@@ -3,8 +3,12 @@ package db
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 )
+
+var ErrInsufficientBalance = errors.New("insufficient balance")
+
 type Store interface {
 	Querier
 	TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error)
@@ -60,8 +64,42 @@ type TransferTxResult struct {
 // it creates a transfer record , add account entries , and update accounts' balance within a single database transaction
 func (store *SQLStore) TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
 	var result TransferTxResult
+
+	if arg.FromAccountID == arg.ToAccountID {
+		return result, errors.New("from and to accounts must be different")
+	}
+	if arg.Amount <= 0 {
+		return result, errors.New("amount must be greater than zero")
+	}
+
 	err := store.execTx(ctx, func(q *Queries) error {
 		var err error
+
+		// Lock both accounts in a consistent order to avoid deadlocks.
+		if arg.FromAccountID < arg.ToAccountID {
+			result.FromAccount, err = q.GetAccountForUpdate(ctx, arg.FromAccountID)
+			if err != nil {
+				return err
+			}
+			result.ToAccount, err = q.GetAccountForUpdate(ctx, arg.ToAccountID)
+			if err != nil {
+				return err
+			}
+		} else {
+			result.ToAccount, err = q.GetAccountForUpdate(ctx, arg.ToAccountID)
+			if err != nil {
+				return err
+			}
+			result.FromAccount, err = q.GetAccountForUpdate(ctx, arg.FromAccountID)
+			if err != nil {
+				return err
+			}
+		}
+
+		if result.FromAccount.Balance < arg.Amount {
+			return ErrInsufficientBalance
+		}
+
 		result.Transfer, err = q.CreateTransfer(ctx, CreateTransferParams{
 			FromAccountID: arg.FromAccountID,
 			ToAccountID:   arg.ToAccountID,
@@ -79,7 +117,6 @@ func (store *SQLStore) TransferTx(ctx context.Context, arg TransferTxParams) (Tr
 			return err
 		}
 
-
 		result.ToEntry, err = q.CreateEntry(ctx, CreateEntryParams{
 			AccountID: arg.ToAccountID,
 			Amount:    arg.Amount,
@@ -87,12 +124,11 @@ func (store *SQLStore) TransferTx(ctx context.Context, arg TransferTxParams) (Tr
 		if err != nil {
 			return err
 		}
-		// TODO : Update accounts' balance
 
 		if arg.FromAccountID < arg.ToAccountID {
-			result.FromAccount , result.ToAccount , err	=addMoney(ctx ,q,arg.FromAccountID , -arg.Amount , arg.ToAccountID , arg.Amount )
+			result.FromAccount, result.ToAccount, err = addMoney(ctx, q, arg.FromAccountID, -arg.Amount, arg.ToAccountID, arg.Amount)
 		} else {
-			result.ToAccount , result.FromAccount , err	=addMoney(ctx ,q,arg.ToAccountID , arg.Amount , arg.FromAccountID , -arg.Amount )
+			result.ToAccount, result.FromAccount, err = addMoney(ctx, q, arg.ToAccountID, arg.Amount, arg.FromAccountID, -arg.Amount)
 
 		}
 
@@ -108,19 +144,19 @@ func addMoney(
 	amount1 int64,
 	accountID2 int64,
 	amount2 int64,
-) (account1 Account , account2 Account , err error) {
-	account1 ,err = q.AddAccountBalance(ctx , AddAccountBalanceParams{
-		ID: accountID1,
+) (account1 Account, account2 Account, err error) {
+	account1, err = q.AddAccountBalance(ctx, AddAccountBalanceParams{
+		ID:     accountID1,
 		Amount: amount1,
 	})
-	if err !=nil {
+	if err != nil {
 		return
 	}
-	account2 ,err = q.AddAccountBalance(ctx , AddAccountBalanceParams{
-		ID: accountID2,
+	account2, err = q.AddAccountBalance(ctx, AddAccountBalanceParams{
+		ID:     accountID2,
 		Amount: amount2,
 	})
-	
-		return 
+
+	return
 
 }
