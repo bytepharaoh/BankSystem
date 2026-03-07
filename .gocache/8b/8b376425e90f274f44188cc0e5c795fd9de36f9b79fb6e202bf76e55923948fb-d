@@ -1,7 +1,0 @@
-./account.sql.go
-./db.go
-./entry.sql.go
-./models.go
-./querier.go
-./store.go
-./transfer.sql.go
