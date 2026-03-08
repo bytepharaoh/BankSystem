@@ -8,7 +8,7 @@ import (
 	"github.com/bytepharoh/simplebank/util"
 	"github.com/stretchr/testify/require"
 )
-
+//Create a random user function to test it on API
 func createRandomUser(t *testing.T) User {
 	arg := CreateUserParams{
 		Username:       util.RandomOwner(),
