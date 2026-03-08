@@ -6,6 +6,7 @@ import (
 
 	db "github.com/bytepharoh/simplebank/db/sqlc"
 	"github.com/gin-gonic/gin"
+	"github.com/lib/pq"
 )
 
 type createAccountRequest struct {
@@ -26,6 +27,17 @@ func (server *Server) createAccount(ctx *gin.Context) {
 	}
 	account, err := server.store.CreateAccount(ctx, arg)
 	if err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if ok {
+			switch pqErr.Code {
+			case "23503":
+				ctx.JSON(http.StatusBadRequest, errorResponse(err))
+				return
+			case "23505":
+				ctx.JSON(http.StatusConflict, errorResponse(err))
+				return
+			}
+		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
