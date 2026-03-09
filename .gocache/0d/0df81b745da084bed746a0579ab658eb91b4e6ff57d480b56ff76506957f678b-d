@@ -1,8 +1,0 @@
-=== RUN   TestHashPassword
---- PASS: TestHashPassword (0.11s)
-=== RUN   TestCheckPassword
---- PASS: TestCheckPassword (0.09s)
-=== RUN   TestHashPasswordTwice
---- PASS: TestHashPasswordTwice (0.19s)
-PASS
-ok  	github.com/bytepharoh/simplebank/util	0.966s
