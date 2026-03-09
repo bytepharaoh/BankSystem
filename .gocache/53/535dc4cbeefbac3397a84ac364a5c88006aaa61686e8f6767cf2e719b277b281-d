@@ -1,0 +1,7 @@
+./account.go
+./server.go
+./transfer.go
+./user.go
+./validator.go
+./account_test.go
+./main_test.go

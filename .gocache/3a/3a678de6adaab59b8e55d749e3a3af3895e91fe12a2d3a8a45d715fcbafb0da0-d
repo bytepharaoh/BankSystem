@@ -1,0 +1,64 @@
+=== RUN   TestGetAccountAPI
+=== RUN   TestGetAccountAPI/OK
+[GIN] 2026/03/09 - 06:50:36 | 200 | 636.583µs |                 | GET      "/accounts/658"
+=== RUN   TestGetAccountAPI/NotFound
+[GIN] 2026/03/09 - 06:50:36 | 404 | 21.625µs |                 | GET      "/accounts/658"
+=== RUN   TestGetAccountAPI/InternalError
+[GIN] 2026/03/09 - 06:50:36 | 500 |  9.875µs |                 | GET      "/accounts/658"
+=== RUN   TestGetAccountAPI/InvalidID
+[GIN] 2026/03/09 - 06:50:36 | 400 |  10.75µs |                 | GET      "/accounts/0"
+--- PASS: TestGetAccountAPI (0.00s)
+    --- PASS: TestGetAccountAPI/OK (0.00s)
+    --- PASS: TestGetAccountAPI/NotFound (0.00s)
+    --- PASS: TestGetAccountAPI/InternalError (0.00s)
+    --- PASS: TestGetAccountAPI/InvalidID (0.00s)
+=== RUN   TestCreateAccountAPI
+=== RUN   TestCreateAccountAPI/OK
+[GIN] 2026/03/09 - 06:50:36 | 200 | 125.459µs |                 | POST     "/accounts"
+=== RUN   TestCreateAccountAPI/InternalError
+[GIN] 2026/03/09 - 06:50:36 | 500 | 11.458µs |                 | POST     "/accounts"
+=== RUN   TestCreateAccountAPI/InvalidCurrency
+[GIN] 2026/03/09 - 06:50:36 | 400 |  7.458µs |                 | POST     "/accounts"
+=== RUN   TestCreateAccountAPI/InvalidJSON
+[GIN] 2026/03/09 - 06:50:36 | 400 |  16.75µs |                 | POST     "/accounts"
+--- PASS: TestCreateAccountAPI (0.00s)
+    --- PASS: TestCreateAccountAPI/OK (0.00s)
+    --- PASS: TestCreateAccountAPI/InternalError (0.00s)
+    --- PASS: TestCreateAccountAPI/InvalidCurrency (0.00s)
+    --- PASS: TestCreateAccountAPI/InvalidJSON (0.00s)
+=== RUN   TestListAccountsAPI
+=== RUN   TestListAccountsAPI/OK
+[GIN] 2026/03/09 - 06:50:36 | 200 |  42.25µs |                 | GET      "/accounts?page_id=1&page_size=5"
+=== RUN   TestListAccountsAPI/InternalError
+[GIN] 2026/03/09 - 06:50:36 | 500 | 12.459µs |                 | GET      "/accounts?page_id=1&page_size=5"
+=== RUN   TestListAccountsAPI/InvalidPageID
+[GIN] 2026/03/09 - 06:50:36 | 400 |  8.625µs |                 | GET      "/accounts?page_id=0&page_size=5"
+=== RUN   TestListAccountsAPI/InvalidPageSize
+[GIN] 2026/03/09 - 06:50:36 | 400 |  7.125µs |                 | GET      "/accounts?page_id=1&page_size=11"
+=== RUN   TestListAccountsAPI/InvalidPageType
+[GIN] 2026/03/09 - 06:50:36 | 400 |  7.375µs |                 | GET      "/accounts?page_id=abc&page_size=5"
+--- PASS: TestListAccountsAPI (0.00s)
+    --- PASS: TestListAccountsAPI/OK (0.00s)
+    --- PASS: TestListAccountsAPI/InternalError (0.00s)
+    --- PASS: TestListAccountsAPI/InvalidPageID (0.00s)
+    --- PASS: TestListAccountsAPI/InvalidPageSize (0.00s)
+    --- PASS: TestListAccountsAPI/InvalidPageType (0.00s)
+=== RUN   TestDeleteAccountAPI
+=== RUN   TestDeleteAccountAPI/OK
+[GIN] 2026/03/09 - 06:50:36 | 204 | 47.083µs |                 | DELETE   "/accounts/50"
+=== RUN   TestDeleteAccountAPI/NotFound
+[GIN] 2026/03/09 - 06:50:36 | 404 |  8.833µs |                 | DELETE   "/accounts/50"
+=== RUN   TestDeleteAccountAPI/GetAccountInternalError
+[GIN] 2026/03/09 - 06:50:36 | 500 | 11.625µs |                 | DELETE   "/accounts/50"
+=== RUN   TestDeleteAccountAPI/DeleteAccountInternalError
+[GIN] 2026/03/09 - 06:50:36 | 500 |  8.709µs |                 | DELETE   "/accounts/50"
+=== RUN   TestDeleteAccountAPI/InvalidID
+[GIN] 2026/03/09 - 06:50:36 | 400 |   10.5µs |                 | DELETE   "/accounts/0"
+--- PASS: TestDeleteAccountAPI (0.00s)
+    --- PASS: TestDeleteAccountAPI/OK (0.00s)
+    --- PASS: TestDeleteAccountAPI/NotFound (0.00s)
+    --- PASS: TestDeleteAccountAPI/GetAccountInternalError (0.00s)
+    --- PASS: TestDeleteAccountAPI/DeleteAccountInternalError (0.00s)
+    --- PASS: TestDeleteAccountAPI/InvalidID (0.00s)
+PASS
+ok  	github.com/bytepharoh/simplebank/api	0.679s

@@ -8,11 +8,16 @@ import (
 	"github.com/bytepharoh/simplebank/util"
 	"github.com/stretchr/testify/require"
 )
-//Create a random user function to test it on API
+
+// Create a random user function to test it on API
 func createRandomUser(t *testing.T) User {
+	password := util.RandomString(6)
+	hashedPassword, err := util.HashPassword(password)
+	require.NoError(t, err)
+
 	arg := CreateUserParams{
 		Username:       util.RandomOwner(),
-		HashedPassword: "secret",
+		HashedPassword: hashedPassword,
 		FullName:       util.RandomOwner(),
 		Email:          util.RandomEmail(),
 	}
@@ -27,6 +32,7 @@ func createRandomUser(t *testing.T) User {
 	require.Equal(t, arg.Email, user.Email)
 	require.True(t, user.PasswordChangedAt.IsZero())
 	require.NotZero(t, user.CreatedAt)
+	require.NoError(t, util.CheckPassword(password, user.HashedPassword))
 
 	return user
 }
