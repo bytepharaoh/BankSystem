@@ -14,7 +14,7 @@ import (
 
 	mockdb "github.com/bytepharoh/simplebank/db/mock"
 	db "github.com/bytepharoh/simplebank/db/sqlc"
-	"github.com/bytepharoh/simplebank/toeken"
+	"github.com/bytepharoh/simplebank/token"
 	"github.com/bytepharoh/simplebank/util"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -446,7 +446,7 @@ func requireBodyMatchAccounts(t *testing.T, body *bytes.Buffer, accounts []db.Ac
 func addAuthorization(
 	t *testing.T,
 	request *http.Request,
-	tokenMaker toeken.Maker,
+	tokenMaker token.Maker,
 	authorizationType string,
 	username string,
 	duration time.Duration,

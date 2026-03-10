@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	db "github.com/bytepharoh/simplebank/db/sqlc"
-	"github.com/bytepharoh/simplebank/toeken"
+	"github.com/bytepharoh/simplebank/token"
 	"github.com/bytepharoh/simplebank/util"
 	"github.com/gin-gonic/gin"
 )
@@ -12,14 +12,14 @@ import (
 // Create a server serves requests of our banking service
 type Server struct {
 	store      db.Store
-	tokenMaker toeken.Maker
+	tokenMaker token.Maker
 	config     util.Config
 	router     *gin.Engine
 }
 
 // Newserver that creates a new http server and setup routing
 func NewServer(store db.Store, config util.Config) (*Server, error) {
-	tokenMaker, err := toeken.NewJWTMaker(config.TokenSymmetricKey)
+	tokenMaker, err := token.NewJWTMaker(config.TokenSymmetricKey)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create token maker: %w", err)
 	}

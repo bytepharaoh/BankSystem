@@ -15,7 +15,7 @@ import (
 
 	mockdb "github.com/bytepharoh/simplebank/db/mock"
 	db "github.com/bytepharoh/simplebank/db/sqlc"
-	"github.com/bytepharoh/simplebank/toeken"
+	"github.com/bytepharoh/simplebank/token"
 	"github.com/bytepharoh/simplebank/util"
 	"github.com/lib/pq"
 	"github.com/stretchr/testify/require"
@@ -172,14 +172,14 @@ func TestGetUserAPI(t *testing.T) {
 	testCases := []struct {
 		name          string
 		username      string
-		setupAuth     func(t *testing.T, request *http.Request, tokenMaker toeken.Maker)
+		setupAuth     func(t *testing.T, request *http.Request, tokenMaker token.Maker)
 		buildStubs    func(store *mockdb.MockStore)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			name:     "OK",
 			username: user.Username,
-			setupAuth: func(t *testing.T, request *http.Request, tokenMaker toeken.Maker) {
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
 				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
@@ -196,7 +196,7 @@ func TestGetUserAPI(t *testing.T) {
 		{
 			name:     "NotFound",
 			username: user.Username,
-			setupAuth: func(t *testing.T, request *http.Request, tokenMaker toeken.Maker) {
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
 				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
@@ -212,7 +212,7 @@ func TestGetUserAPI(t *testing.T) {
 		{
 			name:     "InternalError",
 			username: user.Username,
-			setupAuth: func(t *testing.T, request *http.Request, tokenMaker toeken.Maker) {
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
 				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
@@ -228,7 +228,7 @@ func TestGetUserAPI(t *testing.T) {
 		{
 			name:     "InvalidUsername",
 			username: "invalid@name",
-			setupAuth: func(t *testing.T, request *http.Request, tokenMaker toeken.Maker) {
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
 				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
@@ -243,7 +243,7 @@ func TestGetUserAPI(t *testing.T) {
 		{
 			name:     "UnauthorizedUser",
 			username: user.Username,
-			setupAuth: func(t *testing.T, request *http.Request, tokenMaker toeken.Maker) {
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
 				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, otherUser.Username, time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {

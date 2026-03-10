@@ -1,42 +1,29 @@
-# SimpleBank (Go + PostgreSQL)
+# SimpleBank
 
-SimpleBank is a backend training project focused on building a clean, testable banking API in Go.
-It covers account management, user authentication, money transfers, transactional integrity, and ownership-based authorization.
+SimpleBank is a backend training project built in Go around a small but realistic banking domain: users, accounts, authenticated access, and transactional money transfers. The goal is not just to make endpoints respond, but to practice the parts that usually break first in backend systems: database consistency, access control, repeatable setup, and test coverage.
 
-## Project Highlights
+## Highlights
 
-- Deployed with CI/CD workflow using GitHub Actions
-- Automated developer setup with Bash scripts (`scripts/`)
-- Containerized application runtime with Docker and Docker Compose
-- Strong test coverage across API and database layers
+- JWT-based authentication and ownership-based authorization
+- PostgreSQL-backed persistence with SQLC-generated queries
+- Deadlock-safe transfer transaction logic
+- API unit tests, middleware tests, and database integration tests
+- CI/CD through GitHub Actions
+- Local automation through Bash scripts
+- Containerized runtime with Docker and Docker Compose
 
 ## Tech Stack
 
-- Go (Gin for HTTP server)
+- Go
+- Gin
 - PostgreSQL
-- SQLC (type-safe query generation)
-- golang-migrate (schema migrations)
-- JWT authentication
-- GoMock + Testify (unit tests)
-
+- SQLC
+- golang-migrate
+- GoMock
+- Testify
+- JWT
 ## Deployment
-
-This project is configured and maintained with GitHub Actions workflows under `.github/`.
-The pipeline is used to validate and deploy the application as part of the training delivery flow.
-
-## What This Project Implements
-
-- User registration and login
-- JWT access token issuance
-- Authentication middleware for protected routes
-- Authorization rules based on token identity
-- Account CRUD-style operations (create/get/list/delete)
-- Transfer transaction with:
-  - account existence checks
-  - currency validation
-  - insufficient balance protection
-  - deadlock-safe transfer logic
-
+This project is configured and maintained with GitHub Actions workflows under .github/. The pipeline is used to validate and deploy the application as part of the training delivery flow.
 ## Authorization Rules
 
 Protected APIs require `Authorization: Bearer <token>`.
@@ -50,27 +37,6 @@ Current business rules:
 - `POST /transfers`: user can transfer money only from an account they own
 - `GET /users/:username`: self-only access (token username must match path username)
 
-## Project Structure
-
-```text
-api/           HTTP handlers, middleware, request/response models, API tests
-db/migration/  SQL migrations
-db/query/      SQL query files used by SQLC
-db/sqlc/       generated SQLC code + transactional store + DB tests
-db/mock/       generated GoMock store
-util/          config, random helpers, password hashing, currency validation
-toeken/        token interfaces + JWT maker + payload/tests
-```
-
-## Prerequisites
-
-- Go 1.25+
-- Docker
-- PostgreSQL client tools (optional but useful)
-- `migrate` CLI
-- `sqlc`
-- `mockgen` (from `go.uber.org/mock`)
-
 ## Environment Configuration
 
 Create/update `app.env`:
@@ -83,60 +49,101 @@ TOKEN_SYMMETRIC_KEY=your-32-char-min-secret-key-here
 ACCESS_TOKEN_DURATION=15m
 ```
 
-Important:
-- `TOKEN_SYMMETRIC_KEY` must be at least 32 characters.
-- Do not use training secrets in real systems.
 
 ## Quick Start
 
-1. Start PostgreSQL in Docker
+The fastest path is Docker. It avoids installing most local tooling and uses the same application image every time.
 
-```bash
-make postgres
+1. Build and start the stack:
+
+   ```bash
+   docker compose up --build
+   ```
+
+2. The API will be available at:
+
+   ```text
+   http://localhost:8080
+   ```
+
+3. Stop the stack:
+
+   ```bash
+   docker compose down
+   ```
+
+`docker compose up --build` waits for PostgreSQL, runs migrations, and only then starts the API server.
+
+## Manual Run
+
+If you want to run the app directly on your machine instead of inside Docker:
+
+1. Install requirements:
+
+   ```bash
+   ./scripts/install_requirements.sh
+   ```
+
+2. Prepare local services and database:
+
+   ```bash
+   ./scripts/dev_up.sh
+   ```
+
+3. Start the server:
+
+   ```bash
+   DB_HOST=localhost make server
+   ```
+
+The manual path is mainly for development work where you want direct access to tools like `sqlc`, `mockgen`, or database test runs.
+
+## Configuration
+
+Application configuration lives in [app.env](Golang_backend/app.env).
+
+Important values:
+
+- `DB_SOURCE` defines the PostgreSQL connection string
+- `TOKEN_SYMMETRIC_KEY` must be at least 32 characters
+- `ACCESS_TOKEN_DURATION` controls JWT lifetime
+- local runs use the `DB_SOURCE` value from `app.env`
+- Docker Compose overrides `DB_SOURCE` so the API container can reach the `postgres` service
+
+## What It Does
+
+- creates users
+- logs users in and returns JWT access tokens
+- protects account and transfer routes with middleware
+- allows each user to manage only their own accounts
+- allows each user to fetch only their own profile
+- performs transfers with validation for:
+  - account existence
+  - owner authorization
+  - currency match
+  - insufficient balance
+  - self-transfer rejection
+
+## Authorization Rules
+
+Protected endpoints require:
+
+```text
+Authorization: Bearer <token>
 ```
 
-2. Create database
+Current rules:
 
-```bash
-docker exec -it postgres17 createdb --username=root --owner=root simple_bank
-```
-
-3. Run migrations
-
-```bash
-make migrateup
-```
-
-4. Generate DB code and mocks (if needed)
-
-```bash
-make sqlc
-make mock
-```
-
-5. Start API server
-
-```bash
-make server
-```
-
-Server listens on `SERVER_ADDRESS` (default: `0.0.0.0:8080`).
-
-## Run Tests
-
-Run all tests with coverage:
-
-```bash
-make test
-```
-
-Notes:
-- `api` tests are unit tests with mocks.
-- `db/sqlc` tests are integration-style tests and require a reachable PostgreSQL instance.
+- `POST /accounts`: authenticated user can create an account only for themselves
+- `GET /accounts/:id`: authenticated user can read only their own account
+- `GET /accounts`: authenticated user sees only their own accounts
+- `DELETE /accounts/:id`: authenticated user can delete only their own account
+- `POST /transfers`: authenticated user can transfer only from an account they own
+- `GET /users/:username`: authenticated user can fetch only their own user record
 
 ## API Examples
 
-### Create user
+Create a user:
 
 ```bash
 curl -X POST http://localhost:8080/users \
@@ -149,7 +156,7 @@ curl -X POST http://localhost:8080/users \
   }'
 ```
 
-### Login
+Login:
 
 ```bash
 curl -X POST http://localhost:8080/users/login \
@@ -160,71 +167,41 @@ curl -X POST http://localhost:8080/users/login \
   }'
 ```
 
-Use `access_token` from login response for protected endpoints:
+Call a protected endpoint:
 
 ```bash
 curl -X GET "http://localhost:8080/accounts?page_id=1&page_size=5" \
   -H "Authorization: Bearer <access_token>"
 ```
 
-## Common Dev Workflow
+## Tests
 
-1. Add/modify SQL in `db/query/*.sql`
-2. Run `make sqlc`
-3. If store interface changed, run `make mock`
-4. Update handlers/tests
-5. Run `make test`
+Run the full suite:
 
-## Known Training Constraints
+```bash
+make test
+```
 
-- The token package folder name is `toeken/` (intentionally kept as-is in this project).
-- This project is training-focused; prioritize learning patterns and correctness over production polish.
+Test layers:
 
-## License
-
-Training/educational project.
+- `api`: handler and middleware tests with mocks
+- `db/sqlc`: integration-style tests against PostgreSQL
+- `token`: JWT maker and payload tests
+- `util`: utility-level tests such as password hashing
 
 ## Automation Scripts
 
-Use these helper scripts to reduce setup friction:
+- [install_requirements.sh](Golang_backend/scripts/install_requirements.sh)
+  Installs or checks local requirements for macOS and Linux.
+- [dev_up.sh](Golang_backend/scripts/dev_up.sh)
+  Starts PostgreSQL, creates the database if needed, runs migrations, and regenerates code artifacts.
+- [dev_down.sh](Golang_backend/scripts/dev_down.sh)
+  Stops the local PostgreSQL container.
 
-- `scripts/install_requirements.sh`
-  - Installs required local tooling (`docker`, `migrate`, `sqlc`, `mockgen`)
-- `scripts/dev_up.sh`
-  - Starts PostgreSQL container
-  - Ensures DB exists
-  - Runs migrations
-  - Regenerates sqlc/mocks
-- `scripts/dev_up.sh --run`
-  - Does all setup and starts API server
-- `scripts/dev_down.sh`
-  - Stops local PostgreSQL container
+## Deployment
 
-Examples:
+This project is deployed through GitHub Actions. The workflow is used to validate changes and keep delivery repeatable.
 
-```bash
-./scripts/install_requirements.sh
-./scripts/dev_up.sh
-./scripts/dev_up.sh --run
-./scripts/dev_down.sh
-```
+## License
 
-## Run with Docker
-
-Build and run API + PostgreSQL:
-
-```bash
-docker compose up --build
-```
-
-Server will be available at:
-
-```text
-http://localhost:8080
-```
-
-Stop and remove containers:
-
-```bash
-docker compose down
-```
+This project is released under the MIT License. See [LICENSE](Golang_backend/LICENSE).

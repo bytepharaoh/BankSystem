@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/bytepharoh/simplebank/toeken"
+	"github.com/bytepharoh/simplebank/token"
 	"github.com/gin-gonic/gin"
 )
 
@@ -16,7 +16,7 @@ const (
 	authorizationPayloadKey = "authorization_payload"
 )
 
-func authMiddleware(tokenMaker toeken.Maker) gin.HandlerFunc {
+func authMiddleware(tokenMaker token.Maker) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		authorizationHeader := ctx.GetHeader(authorizationHeaderKey)
 		if len(authorizationHeader) == 0 {
@@ -51,14 +51,14 @@ func authMiddleware(tokenMaker toeken.Maker) gin.HandlerFunc {
 	}
 }
 
-func mustGetAuthorizationPayload(ctx *gin.Context) *toeken.Payload {
+func mustGetAuthorizationPayload(ctx *gin.Context) *token.Payload {
 	payloadValue, exists := ctx.Get(authorizationPayloadKey)
 	if !exists {
 		ctx.AbortWithStatusJSON(http.StatusUnauthorized, errorResponse(errors.New("authorization payload is missing")))
 		return nil
 	}
 
-	payload, ok := payloadValue.(*toeken.Payload)
+	payload, ok := payloadValue.(*token.Payload)
 	if !ok {
 		ctx.AbortWithStatusJSON(http.StatusUnauthorized, errorResponse(errors.New("invalid authorization payload")))
 		return nil

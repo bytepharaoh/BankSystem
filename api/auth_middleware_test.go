@@ -7,31 +7,31 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bytepharoh/simplebank/toeken"
+	"github.com/bytepharoh/simplebank/token"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
 
 type stubTokenMaker struct {
-	verifyTokenFn func(token string) (*toeken.Payload, error)
+	verifyTokenFn func(token string) (*token.Payload, error)
 }
 
-func (s stubTokenMaker) CreateToken(username string, duration time.Duration) (string, *toeken.Payload, error) {
+func (s stubTokenMaker) CreateToken(username string, duration time.Duration) (string, *token.Payload, error) {
 	return "", nil, errors.New("not implemented")
 }
 
-func (s stubTokenMaker) VerifyToken(token string) (*toeken.Payload, error) {
+func (s stubTokenMaker) VerifyToken(token string) (*token.Payload, error) {
 	return s.verifyTokenFn(token)
 }
 
 func TestAuthMiddleware(t *testing.T) {
 	t.Parallel()
 
-	makeServer := func(maker toeken.Maker) *gin.Engine {
+	makeServer := func(maker token.Maker) *gin.Engine {
 		router := gin.New()
 		router.GET("/auth", authMiddleware(maker), func(ctx *gin.Context) {
-			payload := ctx.MustGet(authorizationPayloadKey).(*toeken.Payload)
+			payload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
 			ctx.JSON(http.StatusOK, gin.H{"username": payload.Username})
 		})
 		return router
@@ -40,14 +40,14 @@ func TestAuthMiddleware(t *testing.T) {
 	testCases := []struct {
 		name          string
 		authHeader    string
-		maker         toeken.Maker
+		maker         token.Maker
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			name:       "MissingAuthorizationHeader",
 			authHeader: "",
 			maker: stubTokenMaker{
-				verifyTokenFn: func(token string) (*toeken.Payload, error) {
+				verifyTokenFn: func(tok string) (*token.Payload, error) {
 					return nil, nil
 				},
 			},
@@ -60,7 +60,7 @@ func TestAuthMiddleware(t *testing.T) {
 			name:       "InvalidAuthorizationHeaderFormat",
 			authHeader: "Bearer",
 			maker: stubTokenMaker{
-				verifyTokenFn: func(token string) (*toeken.Payload, error) {
+				verifyTokenFn: func(tok string) (*token.Payload, error) {
 					return nil, nil
 				},
 			},
@@ -73,7 +73,7 @@ func TestAuthMiddleware(t *testing.T) {
 			name:       "UnsupportedAuthorizationType",
 			authHeader: "Basic token",
 			maker: stubTokenMaker{
-				verifyTokenFn: func(token string) (*toeken.Payload, error) {
+				verifyTokenFn: func(tok string) (*token.Payload, error) {
 					return nil, nil
 				},
 			},
@@ -86,34 +86,34 @@ func TestAuthMiddleware(t *testing.T) {
 			name:       "InvalidToken",
 			authHeader: "Bearer invalid-token",
 			maker: stubTokenMaker{
-				verifyTokenFn: func(token string) (*toeken.Payload, error) {
-					return nil, toeken.ErrInvalidToken
+				verifyTokenFn: func(tok string) (*token.Payload, error) {
+					return nil, token.ErrInvalidToken
 				},
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusUnauthorized, recorder.Code)
-				require.Contains(t, recorder.Body.String(), toeken.ErrInvalidToken.Error())
+				require.Contains(t, recorder.Body.String(), token.ErrInvalidToken.Error())
 			},
 		},
 		{
 			name:       "ExpiredToken",
 			authHeader: "Bearer expired-token",
 			maker: stubTokenMaker{
-				verifyTokenFn: func(token string) (*toeken.Payload, error) {
-					return nil, toeken.ErrExpiredToken
+				verifyTokenFn: func(tok string) (*token.Payload, error) {
+					return nil, token.ErrExpiredToken
 				},
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusUnauthorized, recorder.Code)
-				require.Contains(t, recorder.Body.String(), toeken.ErrExpiredToken.Error())
+				require.Contains(t, recorder.Body.String(), token.ErrExpiredToken.Error())
 			},
 		},
 		{
 			name:       "OK",
 			authHeader: "Bearer valid-token",
 			maker: stubTokenMaker{
-				verifyTokenFn: func(token string) (*toeken.Payload, error) {
-					return &toeken.Payload{
+				verifyTokenFn: func(tok string) (*token.Payload, error) {
+					return &token.Payload{
 						ID:        uuid.New(),
 						Username:  "valid_user",
 						IssuedAt:  time.Now(),
