@@ -14,6 +14,7 @@ import (
 
 	mockdb "github.com/bytepharoh/simplebank/db/mock"
 	db "github.com/bytepharoh/simplebank/db/sqlc"
+	"github.com/bytepharoh/simplebank/toeken"
 	"github.com/bytepharoh/simplebank/util"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -96,6 +97,7 @@ func TestGetAccountAPI(t *testing.T) {
 			url := fmt.Sprintf("/accounts/%d", tc.accountID)
 			request, err := http.NewRequest(http.MethodGet, url, nil)
 			require.NoError(t, err)
+			addAuthorization(t, request, server.tokenMaker, authorizationTypeBearer, account.Owner, time.Minute)
 
 			server.router.ServeHTTP(recorder, request)
 			tc.checkResponse(t, recorder)
@@ -185,6 +187,7 @@ func TestCreateAccountAPI(t *testing.T) {
 			request, err := http.NewRequest(http.MethodPost, "/accounts", strings.NewReader(tc.body))
 			require.NoError(t, err)
 			request.Header.Set("Content-Type", "application/json")
+			addAuthorization(t, request, server.tokenMaker, authorizationTypeBearer, account.Owner, time.Minute)
 
 			server.router.ServeHTTP(recorder, request)
 			tc.checkResponse(t, recorder)
@@ -194,9 +197,11 @@ func TestCreateAccountAPI(t *testing.T) {
 
 func TestListAccountsAPI(t *testing.T) {
 	n := 5
+	owner := util.RandomOwner()
 	accounts := make([]db.Account, n)
 	for i := 0; i < n; i++ {
 		accounts[i] = randomAccount()
+		accounts[i].Owner = owner
 		accounts[i].CreatedAt = time.Date(2026, time.March, 7, 20, 0, i, 0, time.UTC)
 	}
 
@@ -211,6 +216,7 @@ func TestListAccountsAPI(t *testing.T) {
 			query: "page_id=1&page_size=5",
 			buildStubs: func(store *mockdb.MockStore) {
 				arg := db.ListAccountsParams{
+					Owner:  owner,
 					Limit:  5,
 					Offset: 0,
 				}
@@ -292,6 +298,7 @@ func TestListAccountsAPI(t *testing.T) {
 			}
 			request, err := http.NewRequest(http.MethodGet, url, nil)
 			require.NoError(t, err)
+			addAuthorization(t, request, server.tokenMaker, authorizationTypeBearer, owner, time.Minute)
 
 			server.router.ServeHTTP(recorder, request)
 			tc.checkResponse(t, recorder)
@@ -401,6 +408,7 @@ func TestDeleteAccountAPI(t *testing.T) {
 			url := fmt.Sprintf("/accounts/%d", tc.accountID)
 			request, err := http.NewRequest(http.MethodDelete, url, nil)
 			require.NoError(t, err)
+			addAuthorization(t, request, server.tokenMaker, authorizationTypeBearer, account.Owner, time.Minute)
 
 			server.router.ServeHTTP(recorder, request)
 			tc.checkResponse(t, recorder)
@@ -433,4 +441,21 @@ func requireBodyMatchAccounts(t *testing.T, body *bytes.Buffer, accounts []db.Ac
 	err := json.Unmarshal(body.Bytes(), &gotAccounts)
 	require.NoError(t, err)
 	require.Equal(t, accounts, gotAccounts)
+}
+
+func addAuthorization(
+	t *testing.T,
+	request *http.Request,
+	tokenMaker toeken.Maker,
+	authorizationType string,
+	username string,
+	duration time.Duration,
+) {
+	t.Helper()
+
+	token, _, err := tokenMaker.CreateToken(username, duration)
+	require.NoError(t, err)
+
+	authorizationHeader := fmt.Sprintf("%s %s", authorizationType, token)
+	request.Header.Set(authorizationHeaderKey, authorizationHeader)
 }

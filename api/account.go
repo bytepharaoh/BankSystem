@@ -2,6 +2,7 @@ package api
 
 import (
 	"database/sql"
+	"errors"
 	"net/http"
 
 	db "github.com/bytepharoh/simplebank/db/sqlc"
@@ -20,6 +21,16 @@ func (server *Server) createAccount(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
+
+	authPayload := mustGetAuthorizationPayload(ctx)
+	if authPayload == nil {
+		return
+	}
+	if req.Owner != authPayload.Username {
+		ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New("account owner must match authenticated user")))
+		return
+	}
+
 	arg := db.CreateAccountParams{
 		Owner:    req.Owner,
 		Currency: req.Currency,
@@ -55,6 +66,12 @@ func (server *Server) getAccount(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
+
+	authPayload := mustGetAuthorizationPayload(ctx)
+	if authPayload == nil {
+		return
+	}
+
 	account, err := server.store.GetAccount(ctx, req.ID)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -62,6 +79,10 @@ func (server *Server) getAccount(ctx *gin.Context) {
 			return
 		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+	if account.Owner != authPayload.Username {
+		ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New("account doesn't belong to the authenticated user")))
 		return
 	}
 	ctx.JSON(http.StatusOK, account)
@@ -79,13 +100,22 @@ func (server *Server) deleteAccount(ctx *gin.Context) {
 		return
 	}
 
-	_, err := server.store.GetAccount(ctx, req.ID)
+	authPayload := mustGetAuthorizationPayload(ctx)
+	if authPayload == nil {
+		return
+	}
+
+	account, err := server.store.GetAccount(ctx, req.ID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
 			return
 		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+	if account.Owner != authPayload.Username {
+		ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New("account doesn't belong to the authenticated user")))
 		return
 	}
 
@@ -109,7 +139,12 @@ func (server *Server) listAccount(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
+	authPayload := mustGetAuthorizationPayload(ctx)
+	if authPayload == nil {
+		return
+	}
 	arg := db.ListAccountsParams{
+		Owner:  authPayload.Username,
 		Limit:  int32(req.PageSize),
 		Offset: (int32(req.PageID) - 1) * int32(req.PageSize),
 	}

@@ -82,6 +82,15 @@ func (server *Server) getUser(ctx *gin.Context) {
 		return
 	}
 
+	authPayload := mustGetAuthorizationPayload(ctx)
+	if authPayload == nil {
+		return
+	}
+	if authPayload.Username != req.Username {
+		ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New("user doesn't belong to the authenticated user")))
+		return
+	}
+
 	user, err := server.store.GetUser(ctx, req.Username)
 	if err != nil {
 		if err == sql.ErrNoRows {
