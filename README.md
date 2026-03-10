@@ -14,14 +14,14 @@ SimpleBank is a backend training project built in Go around a small but realisti
 
 ## Tech Stack
 
-- Go
-- Gin
-- PostgreSQL
-- SQLC
-- golang-migrate
-- GoMock
-- Testify
-- JWT
+- Go `1.25.0`
+- Gin `v1.12.0`
+- PostgreSQL `17.9-alpine`
+- SQLC 
+- golang-migrate 
+- GoMock `v0.6.0`
+- Testify `v1.11.1`
+- JWT `v5 v5.3.1`
 ## Deployment
 This project is configured and maintained with GitHub Actions workflows under .github/. The pipeline is used to validate and deploy the application as part of the training delivery flow.
 ## Authorization Rules
