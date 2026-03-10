@@ -27,8 +27,18 @@ install_with_apt() {
 echo "==> Checking base tools"
 
 if ! need_cmd go; then
-  echo "[error] Go is not installed. Install Go 1.25+ first: https://go.dev/dl/"
-  exit 1
+  if need_cmd brew; then
+    install_with_brew go
+  elif need_cmd apt-get; then
+    sudo apt-get update
+    install_with_apt golang-go
+  else
+    echo "[error] Go is missing and no supported package manager was found."
+    echo "[hint] Install Go 1.25+ manually from https://go.dev/dl/"
+    exit 1
+  fi
+else
+  echo "[skip] go is already installed"
 fi
 
 if ! need_cmd docker; then
