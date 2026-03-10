@@ -100,7 +100,7 @@ The manual path is mainly for development work where you want direct access to t
 
 ## Configuration
 
-Application configuration lives in [app.env](Golang_backend/app.env).
+Application configuration lives in [app.env](/app.env).
 
 Important values:
 
@@ -191,11 +191,11 @@ Test layers:
 
 ## Automation Scripts
 
-- [install_requirements.sh](Golang_backend/scripts/install_requirements.sh)
+- [install_requirements.sh](/scripts/install_requirements.sh)
   Installs or checks local requirements for macOS and Linux.
-- [dev_up.sh](Golang_backend/scripts/dev_up.sh)
+- [dev_up.sh](/scripts/dev_up.sh)
   Starts PostgreSQL, creates the database if needed, runs migrations, and regenerates code artifacts.
-- [dev_down.sh](Golang_backend/scripts/dev_down.sh)
+- [dev_down.sh](/scripts/dev_down.sh)
   Stops the local PostgreSQL container.
 
 ## Deployment
@@ -204,4 +204,4 @@ This project is deployed through GitHub Actions. The workflow is used to validat
 
 ## License
 
-This project is released under the MIT License. See [LICENSE](Golang_backend/LICENSE).
+This project is released under the MIT License. See [LICENSE](/LICENSE).
